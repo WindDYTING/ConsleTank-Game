@@ -78,25 +78,23 @@ public class World
 
     #region Misc
 
-    private const char Guess = '░';
-    public static Position MyTankPosition = new (47, 27);
-    public static Direction MyTankDirection = Direction.Up;
-    public static ConsoleColorPair MyTankColorPair = new(ConsoleColor.DarkGray, ConsoleColor.Black);
-    public static ConsoleColorPair SpaceColorPair = new(ConsoleColor.Black, ConsoleColor.Black);
-    public static ConsoleColorPair WallColorPair = new(ConsoleColor.Cyan, ConsoleColor.Black);
-    public static ConsoleColorPair GuessColorPair = new(ConsoleColor.White, ConsoleColor.Green);
+    private const char Grass = '░';
+    private const char SpaceChar = ' ';
+
+    private static readonly Position MyTankPosition = new(47, 27);
+    private static readonly Direction MyTankDirection = Direction.Up;
+    private static readonly ConsoleColorPair MyTankColorPair = new(ConsoleColor.DarkGray, ConsoleColor.Black);
+    private static readonly ConsoleColorPair SpaceColorPair = new(ConsoleColor.Black, ConsoleColor.Black);
+    private static readonly ConsoleColorPair WallColorPair = new(ConsoleColor.Cyan, ConsoleColor.Black);
+    private static readonly ConsoleColorPair GrassColorPair = new(ConsoleColor.White, ConsoleColor.Green);
 
     private const int DirectionMaxCount = 4;
-    private const char SpaceChar = ' ';
 
     #endregion
 
-    public ConcurrentQueue<Direction> Directions = new ();
+    public ConcurrentQueue<Direction> Directions = new();
 
-    public TankObject Me { get; set; } = new(MyTankPosition, MyTankDirection)
-    {
-        SelfColorPair = MyTankColorPair
-    };
+    public TankObject Me { get; } = new(MyTankPosition, MyTankDirection);
 
     public World()
     {
@@ -151,24 +149,22 @@ public class World
     public void ShowStage()
     {
         ShowWalls();
-        ShowMyTank(MyTankPosition, Me.SelfColorPair);
+        ShowMyTank(MyTankPosition, MyTankColorPair);
     }
 
     private void ShowMyTankInTerrain(Position position)
     {
-        if (WallsString[position.Row][position.Col] is SpaceChar)
+        if (WallsString[position.Row][position.Col] is Grass)
         {
-            ShowMyTank(position, Me.SelfColorPair);
+            Utils.UsingColor(MyTankColorPair with { BackgroundColor = GrassColorPair.BackgroundColor }, () =>
+            {
+                Console.SetCursorPosition(position.Col, position.Row);
+                Console.Write(Grass);
+            });
             return;
         }
 
-        Utils.UsingColor(Me.SelfColorPair with { BackgroundColor = GuessColorPair.BackgroundColor }, () =>
-        {
-            Console.SetCursorPosition(position.Col, position.Row);
-            Console.Write(Guess);
-        });
-        //ShowTerrain(position);
-        //ShowMyTank(position, );
+        ShowMyTank(position, MyTankColorPair);
     }
 
     private void ShowMyTank(Position currentPosition, ConsoleColorPair colorPair)
@@ -204,7 +200,7 @@ public class World
         return WallsString[row][col] switch
         {
             SpaceChar => SpaceColorPair,
-            Guess => GuessColorPair,
+            Grass => GrassColorPair,
             _ => WallColorPair
         };
     }
@@ -213,6 +209,6 @@ public class World
     {
         var (col, row) = nextPosition;
 
-        return WallsString[row][col] is SpaceChar or Guess;
+        return WallsString[row][col] is SpaceChar or Grass;
     }
 }

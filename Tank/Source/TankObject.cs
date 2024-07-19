@@ -17,8 +17,6 @@ public class TankObject
 
     public Direction CurrentDirection { get; private set; }
 
-    public ConsoleColorPair SelfColorPair { get; init; }
-
     public event EventHandler<TankMovingEventArgs>? TankMoving;
     public event EventHandler<TankMovedEventArgs>? TankMoved;
 
@@ -49,7 +47,6 @@ public class TankObject
         var originalPosition = CurrentPosition;
         Position nextPosition = new(CurrentPosition.Col + MoveCols[directionValue], CurrentPosition.Row + MoveRows[directionValue]);
 
-        //if (!canMove(nextPosition)) return;
         var movingEventArgs = new TankMovingEventArgs(originalPosition, nextPosition);
         OnMoving(movingEventArgs);
 
