@@ -164,7 +164,7 @@ public class World
                 {
                     DisplayBulletsInWorld[i].Fly();
                 }
-               
+                
                 await Task.Delay(75, token);
             }
         }, token);
@@ -201,6 +201,7 @@ public class World
             var idx = DisplayBulletsInWorld.IndexOf(bullet!);
             DisplayBulletsInWorld.RemoveAt(idx);
             bullet!.WhosFire.Reload();
+            bullet.HitTest -= OnBulletHitTest;
         }
     }
 
@@ -220,7 +221,7 @@ public class World
         e.IsHit = isHit;
     }
 
-    private static (char changeChar, ConsoleColorPair colorPair, bool isHit) DetermineTerrainChar(Bullet bullet, int row,
+    private (char changeChar, ConsoleColorPair colorPair, bool isHit) DetermineTerrainChar(Bullet bullet, int row,
         int col)
     {
         (char changeChar, ConsoleColorPair colorPair, bool isHit) = WallsString[row][col] switch
