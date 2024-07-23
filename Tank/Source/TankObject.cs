@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using Tank.EventArgs;
 
 namespace Tank;
@@ -13,9 +15,16 @@ public class TankObject
     private static int[] MoveCols = [0, 0, -1, 1];
     private static int[] MoveRows = [-1, 1, 0, 0];
 
+    public int BulletCount { get; set; } = 1;
+
+    public int BulletFlySpeed { get; set; } = 1;
+
+    public ConcurrentQueue<Bullet> BulletsSink { get; set; } = new();
+
     public Position CurrentPosition { get; private set; }
 
     public Direction CurrentDirection { get; private set; }
+
 
     public event EventHandler<TankMovingEventArgs>? TankMoving;
     public event EventHandler<TankMovedEventArgs>? TankMoved;
@@ -24,6 +33,18 @@ public class TankObject
     {
         CurrentPosition = position;
         CurrentDirection = currentDirection;
+        Reload();
+    }
+
+    public void Reload()
+    {
+        if (BulletsSink.IsEmpty)
+        {
+            for (int i = 0; i < BulletCount; i++)
+            {
+                BulletsSink.Enqueue(new Bullet(BulletFlySpeed, this));
+            }
+        }
     }
 
     public void SetDirection(Direction direction)
@@ -50,9 +71,25 @@ public class TankObject
         var movingEventArgs = new TankMovingEventArgs(originalPosition, nextPosition);
         OnMoving(movingEventArgs);
 
-        if (!movingEventArgs.CanMove) return;
+        if (!movingEventArgs.CanMove)
+        {
+            return;
+        }
 
         OnMoved(new TankMovedEventArgs(nextPosition, originalPosition));
+    }
+
+    public Bullet? Fire()
+    {
+        var hasBullet = BulletsSink.TryDequeue(out var bullet);
+        if (hasBullet)
+        {
+            bullet.FlyDirection = CurrentDirection;
+            bullet.CurrentPosition = CurrentPosition;
+            return bullet;
+        }
+
+        return null;
     }
 
     protected virtual void OnMoved(TankMovedEventArgs e)

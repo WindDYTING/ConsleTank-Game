@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,8 +6,8 @@ namespace Tank;
 
 public class Game
 {
-    private World _world;
-    private readonly DebounceJob _debounceJob = new (TimeSpan.FromMilliseconds(40));
+    private readonly World _world;
+    private readonly DebounceJob _debounceJob = new (TimeSpan.FromMilliseconds(65));
 
     public Game()
     {
@@ -25,6 +24,7 @@ public class Game
         var cts = new CancellationTokenSource();
 
         _world.UpdateGameState(cts.Token);
+        _world.UpdateBulletsState(cts.Token);
 
         await ReadUserKeyAsync(cts).ConfigureAwait(false);
     }
@@ -77,14 +77,18 @@ public class Game
                     _ => (Instruction.None, Direction.None),
                 };
 
-                AddDirection(direction);
+                AddDirectionAndInstruction(direction, instruction);
             }
         });
     }
 
-    private void AddDirection(Direction direction)
+    private void AddDirectionAndInstruction(Direction direction, Instruction instruction)
     {
-        _debounceJob.Run(() => _world.Directions.Enqueue(direction));
+        _debounceJob.Run(() =>
+        {
+            _world.Directions.Enqueue(direction);
+            _world.Instructions.Enqueue(instruction);
+        });
     }
 
     private Task WaitStartKeyAsync() => WaitKeyAsync(ConsoleKey.Enter);
