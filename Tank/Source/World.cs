@@ -149,7 +149,7 @@ public class World
             {
                 UpdateMyState();
 
-                await Task.Delay(35, token);
+                await Task.Delay(25, token);
             }
         }, token);
     }

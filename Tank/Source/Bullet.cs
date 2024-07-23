@@ -30,17 +30,20 @@ namespace Tank
         {
             var direction = (int)FlyDirection;
 
-            var (col, row) = CurrentPosition;
-            col += FlySpeed * MoveCols[direction];
-            row += FlySpeed * MoveRows[direction];
-            var nextPosition = new Position(col, row);
-            var e = new BulletFlyingEventArgs
+            for (int i = 0; i < FlySpeed; i++)
             {
-                CurrentPosition = CurrentPosition,
-                NextPosition = nextPosition
-            };
-            CurrentPosition = nextPosition;
-            OnHitTest(e);
+                var (col, row) = CurrentPosition;
+                col += MoveCols[direction];
+                row += MoveRows[direction];
+                var nextPosition = new Position(col, row);
+                var e = new BulletFlyingEventArgs
+                {
+                    CurrentPosition = CurrentPosition,
+                    NextPosition = nextPosition
+                };
+                CurrentPosition = nextPosition;
+                OnHitTest(e);
+            }
         }
 
         protected virtual void OnHitTest(BulletFlyingEventArgs e)

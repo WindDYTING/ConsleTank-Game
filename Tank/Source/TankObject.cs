@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using Tank.EventArgs;
 
 namespace Tank;
@@ -15,9 +14,11 @@ public class TankObject
     private static int[] MoveCols = [0, 0, -1, 1];
     private static int[] MoveRows = [-1, 1, 0, 0];
 
-    public int BulletCount { get; set; } = 1;
+    public virtual int BulletCount => 1;
 
-    public int BulletFlySpeed { get; set; } = 1;
+    public virtual int BulletFlySpeed => 1;
+
+    public virtual int MoveSpeed => 1;
 
     public ConcurrentQueue<Bullet> BulletsSink { get; set; } = new();
 
@@ -28,6 +29,7 @@ public class TankObject
 
     public event EventHandler<TankMovingEventArgs>? TankMoving;
     public event EventHandler<TankMovedEventArgs>? TankMoved;
+
 
     public TankObject(Position position, Direction currentDirection)
     {
@@ -60,23 +62,22 @@ public class TankObject
     public void Move(Direction direction)
     {
         if (direction == Direction.None) return;
-        
-        SetDirection(direction);
 
-        var directionValue = (int)direction;
-
-        var originalPosition = CurrentPosition;
-        Position nextPosition = new(CurrentPosition.Col + MoveCols[directionValue], CurrentPosition.Row + MoveRows[directionValue]);
-
-        var movingEventArgs = new TankMovingEventArgs(originalPosition, nextPosition);
-        OnMoving(movingEventArgs);
-
-        if (!movingEventArgs.CanMove)
+        for (int i = 0; i < MoveSpeed; i++)
         {
-            return;
-        }
+            SetDirection(direction);
+            var directionValue = (int)direction;
+            var originalPosition = CurrentPosition;
+            Position nextPosition = new(CurrentPosition.Col + MoveCols[directionValue], CurrentPosition.Row + MoveRows[directionValue]);
+            var movingEventArgs = new TankMovingEventArgs(originalPosition, nextPosition);
+            OnMoving(movingEventArgs);
+            if (!movingEventArgs.CanMove)
+            {
+                return;
+            }
 
-        OnMoved(new TankMovedEventArgs(nextPosition, originalPosition));
+            OnMoved(new TankMovedEventArgs(nextPosition, originalPosition));
+        }
     }
 
     public Bullet? Fire()
